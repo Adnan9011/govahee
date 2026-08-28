@@ -1,6 +1,7 @@
 import { api } from "@/api/client";
 import type {
   BatchRow,
+  BulkValidateResult,
   CertificateDetail,
   CertificateRow,
   CertificateTypeRow,
@@ -11,6 +12,7 @@ import type {
   Session,
   SiteConfig,
   TemplateRow,
+  UploadedFile,
   VerifyResult,
 } from "@/api/types";
 
@@ -82,8 +84,23 @@ export async function fetchTemplates() {
   return data;
 }
 
+export async function fetchTemplate(id: number) {
+  const { data } = await api.get<TemplateRow>(`/templates/${id}/`);
+  return data;
+}
+
+export async function createTemplate(payload: { name: string; format?: string; locale?: string }) {
+  const { data } = await api.post<TemplateRow>("/templates/", payload);
+  return data;
+}
+
 export async function saveTemplateVersion(id: number, payload: Record<string, unknown>) {
   const { data } = await api.post<TemplateRow>(`/templates/${id}/versions/`, payload);
+  return data;
+}
+
+export async function uploadAttachment(form: FormData) {
+  const { data } = await api.post<{ id: number; url: string; original_name: string }>("/attachments/upload/", form);
   return data;
 }
 
@@ -229,6 +246,8 @@ export async function fetchBranding() {
     font_family: string;
     email_from_name: string;
     verification_footer: string;
+    logo_file: number | null;
+    logo_url: string | null;
   };
 }
 
@@ -291,6 +310,20 @@ export async function uploadBulk(form: FormData) {
   };
 }
 
+export async function validateBulk(payload: {
+  batch_id: number;
+  column_mapping: Record<string, string>;
+}) {
+  const { data } = await api.post("/bulk-issue/", { step: "validate", ...payload });
+  return data as {
+    batch: BatchRow;
+    errors: { row: number; errors: string[] }[];
+    preview: { row_number: number; data: Record<string, string>; errors: string[]; status: string }[];
+    valid_count: number;
+    invalid_count: number;
+  };
+}
+
 export async function startBulkIssue(payload: {
   step: string;
   batch_id: number;
@@ -304,6 +337,21 @@ export async function startBulkIssue(payload: {
 export async function fetchBatches() {
   const { data } = await api.get<Paginated<BatchRow>>("/batches/");
   return data;
+}
+
+export async function fetchBatch(id: number) {
+  const { data } = await api.get<BatchRow>(`/batches/${id}/`);
+  return data;
+}
+
+export async function downloadBatchZip(id: number) {
+  const { data } = await api.get(`/batches/${id}/zip/`, { responseType: "blob" });
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `batch-${id}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export async function fetchPlatformOrgs() {

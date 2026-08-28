@@ -27,6 +27,7 @@ interface AuthContextValue {
     organization_name: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  refreshSession: () => Promise<void>;
   setOrganizationId: (id: number) => void;
 }
 
@@ -124,9 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      refreshSession: loadSession,
       setOrganizationId,
     }),
-    [role, loading, session, organizationId, login, register, logout, setOrganizationId]
+    [role, loading, session, organizationId, login, register, logout, setOrganizationId, loadSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

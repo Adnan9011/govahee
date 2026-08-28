@@ -64,6 +64,13 @@ class OrganizationViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["post"], url_path="complete-onboarding")
     def complete_onboarding(self, request):
+        from accounts.auth import is_platform_admin
+        from organizations.rbac import role_has_permission
+
+        if not is_platform_admin(request.user) and not role_has_permission(
+            getattr(request, "org_role", ""), "settings.write"
+        ):
+            return Response({"detail": "مجوز ویرایش تنظیمات را ندارید."}, status=403)
         org = request.organization
         if not org.onboarding_completed_at:
             org.onboarding_completed_at = timezone.now()
@@ -205,12 +212,20 @@ class BrandingView(APIView):
 
     def get(self, request):
         branding, _ = Branding.objects.get_or_create(organization=request.organization)
-        return Response(BrandingSerializer(branding).data)
+        return Response(BrandingSerializer(branding, context={"request": request}).data)
 
     def patch(self, request):
-        self.required_permission = "settings.write"
+        from accounts.auth import is_platform_admin
+        from organizations.rbac import role_has_permission
+
+        if not is_platform_admin(request.user) and not role_has_permission(
+            getattr(request, "org_role", ""), "settings.write"
+        ):
+            return Response({"detail": "مجوز ویرایش تنظیمات را ندارید."}, status=403)
         branding, _ = Branding.objects.get_or_create(organization=request.organization)
-        ser = BrandingSerializer(branding, data=request.data, partial=True)
+        ser = BrandingSerializer(
+            branding, data=request.data, partial=True, context={"request": request}
+        )
         ser.is_valid(raise_exception=True)
         ser.save()
         return Response(ser.data)

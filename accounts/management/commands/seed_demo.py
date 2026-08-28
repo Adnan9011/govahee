@@ -29,6 +29,9 @@ class Command(BaseCommand):
         else:
             org = provision_organization(owner=user, name="آموزشگاه نمونه")
         template = org.certificatetemplate_set.first()
+        if not org.onboarding_completed_at:
+            org.onboarding_completed_at = timezone.now()
+            org.save(update_fields=["onboarding_completed_at"])
         if template and not Certificate.objects.filter(organization=org).exists():
             issue_certificate(
                 organization=org,

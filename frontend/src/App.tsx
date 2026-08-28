@@ -25,6 +25,7 @@ const TeamPage = lazy(() => import("@/pages/app/TeamPage"));
 const AnalyticsPage = lazy(() => import("@/pages/app/AnalyticsPage"));
 const IntegrationsPage = lazy(() => import("@/pages/app/IntegrationsPage"));
 const SettingsPage = lazy(() => import("@/pages/app/SettingsPage"));
+const OnboardingPage = lazy(() => import("@/pages/app/OnboardingPage"));
 const BillingPage = lazy(() => import("@/pages/app/BillingPage"));
 const VerifySearchPage = lazy(() => import("@/pages/app/VerifySearchPage"));
 const PlatformPage = lazy(() => import("@/pages/platform/PlatformPage"));
@@ -59,6 +60,7 @@ export default function App() {
             }
           >
             <Route index element={<DashboardPage />} />
+            <Route path="onboarding" element={<OnboardingPage />} />
             <Route path="certificates" element={<CertificatesPage />} />
             <Route path="certificates/:id" element={<CertificateDetailPage />} />
             <Route path="issue" element={<IssuePage />} />

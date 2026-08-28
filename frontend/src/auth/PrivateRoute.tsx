@@ -10,7 +10,7 @@ export function PrivateRoute({
   children: ReactNode;
   platformOnly?: boolean;
 }) {
-  const { isAuthenticated, loading, role } = useAuth();
+  const { isAuthenticated, loading, role, memberships, organizationId } = useAuth();
   const location = useLocation();
   if (loading) {
     return (
@@ -24,6 +24,14 @@ export function PrivateRoute({
   }
   if (platformOnly && role !== "platform_admin") {
     return <Navigate to="/app" replace />;
+  }
+  if (role !== "platform_admin" && !location.pathname.startsWith("/app/onboarding")) {
+    const membership =
+      memberships.find((m) => m.organization_id === organizationId) ?? memberships[0];
+    const canSetup = membership && ["owner", "admin"].includes(membership.role);
+    if (canSetup && !membership.onboarding_completed) {
+      return <Navigate to="/app/onboarding" replace />;
+    }
   }
   return children;
 }

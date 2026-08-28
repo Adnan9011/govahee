@@ -71,6 +71,46 @@ def _parse_xlsx(file_obj) -> tuple[list[str], list[dict]]:
     return [h for h in headers if h], result
 
 
+def apply_mapping(payload: dict, mapping: dict[str, str]) -> dict[str, str]:
+    mapped: dict[str, str] = {}
+    for col, field in (mapping or {}).items():
+        if not field:
+            continue
+        mapped[field] = str((payload or {}).get(col, "") or "").strip()
+    return mapped
+
+
+def validate_mapped_row(mapped: dict[str, str], *, row_number: int) -> list[str]:
+    errors: list[str] = []
+    name = mapped.get("recipient_name") or mapped.get("name") or ""
+    if not name:
+        errors.append(f"Row {row_number}: نام دریافت‌کننده الزامی است.")
+    email = mapped.get("email") or ""
+    if email and "@" not in email:
+        errors.append(f"Row {row_number}: Email is invalid")
+    issue_date = mapped.get("issue_date") or ""
+    if issue_date:
+        try:
+            date.fromisoformat(issue_date.replace("/", "-")[:10])
+        except ValueError:
+            errors.append(f"Row {row_number}: تاریخ صدور نامعتبر است.")
+    return errors
+
+
+def validate_batch_items(items, mapping: dict[str, str]) -> list[dict]:
+    report = []
+    for item in items:
+        mapped = apply_mapping(item.payload, mapping)
+        errors = validate_mapped_row(mapped, row_number=item.row_number)
+        item.errors = errors
+        item.status = (
+            item.Status.INVALID if errors else item.Status.VALID
+        )
+        if errors:
+            report.append({"row": item.row_number, "errors": errors})
+    return report
+
+
 def suggested_mapping(headers: list[str]) -> dict[str, str]:
     aliases = {
         "name": "recipient_name",

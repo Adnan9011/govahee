@@ -156,6 +156,8 @@ class IssueCertificateSerializer(serializers.Serializer):
 
 
 class IssuanceBatchSerializer(serializers.ModelSerializer):
+    zip_ready = serializers.SerializerMethodField()
+
     class Meta:
         model = IssuanceBatch
         fields = (
@@ -171,4 +173,8 @@ class IssuanceBatchSerializer(serializers.ModelSerializer):
             "send_email",
             "created_at",
             "finished_at",
+            "zip_ready",
         )
+
+    def get_zip_ready(self, obj):
+        return bool(obj.zip_file_id)

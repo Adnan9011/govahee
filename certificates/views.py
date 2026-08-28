@@ -16,7 +16,7 @@ from accounts.auth import database_user_or_none
 from accounts.permissions import HasOrgPermission
 from billing.entitlements import assert_feature, current_usage, get_entitlements
 from certificates.analytics import analytics_payload
-from certificates.bulk import parse_tabular, suggested_mapping
+from certificates.bulk import parse_tabular, suggested_mapping, validate_batch_items
 from certificates.export import certificates_to_csv
 from certificates.models import (
     Certificate,
@@ -74,7 +74,21 @@ class TemplateViewSet(OrganizationScopedViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        serializer.save(organization=self.request.organization)
+        template = serializer.save(organization=self.request.organization)
+        version = TemplateVersion.objects.create(
+            template=template,
+            version=1,
+            canvas={
+                "width_mm": template.width_mm,
+                "height_mm": template.height_mm,
+                "background": {"color": "#ffffff"},
+                "elements": [],
+            },
+            variables=[],
+            created_by=database_user_or_none(self.request.user),
+        )
+        template.current_version = version
+        template.save(update_fields=["current_version"])
 
     def perform_destroy(self, instance):
         if instance.certificates.exists():
@@ -106,6 +120,13 @@ class TemplateViewSet(OrganizationScopedViewSet):
         template.current_version = version
         template.save()
         return Response(CertificateTemplateSerializer(template).data)
+
+    @action(detail=True, methods=["get"])
+    def preview(self, request, pk=None):
+        template = self.get_object()
+        from certificates.pdf import canvas_preview_html
+
+        return HttpResponse(canvas_preview_html(template), content_type="text/html")
 
 
 class RecipientViewSet(OrganizationScopedViewSet):
@@ -330,6 +351,8 @@ class BulkIssueView(APIView):
         step = request.data.get("step") or "upload"
         if step == "upload":
             return self._upload(request)
+        if step == "validate":
+            return self._validate(request)
         if step == "issue":
             return self._issue(request)
         return Response({"detail": "مرحله نامعتبر است."}, status=400)
@@ -374,6 +397,40 @@ class BulkIssueView(APIView):
             }
         )
 
+    def _validate(self, request):
+        batch = IssuanceBatch.objects.for_org(request.organization).get(
+            pk=request.data.get("batch_id")
+        )
+        mapping = request.data.get("column_mapping") or batch.column_mapping
+        batch.column_mapping = mapping
+        items = list(batch.items.all())
+        report = validate_batch_items(items, mapping)
+        IssuanceItem.objects.bulk_update(items, ["errors", "status"])
+        batch.error_report = report
+        batch.status = IssuanceBatch.Status.VALIDATING
+        batch.save(update_fields=["column_mapping", "error_report", "status", "updated_at"])
+        preview = []
+        for item in items[:20]:
+            from certificates.bulk import apply_mapping
+
+            preview.append(
+                {
+                    "row_number": item.row_number,
+                    "data": apply_mapping(item.payload, mapping),
+                    "errors": item.errors,
+                    "status": item.status,
+                }
+            )
+        return Response(
+            {
+                "batch": IssuanceBatchSerializer(batch).data,
+                "errors": report,
+                "preview": preview,
+                "valid_count": sum(1 for i in items if i.status == IssuanceItem.Status.VALID),
+                "invalid_count": sum(1 for i in items if i.status == IssuanceItem.Status.INVALID),
+            }
+        )
+
     def _issue(self, request):
         batch = IssuanceBatch.objects.for_org(request.organization).get(pk=request.data.get("batch_id"))
         mapping = request.data.get("column_mapping") or batch.column_mapping
@@ -393,6 +450,28 @@ class BatchViewSet(OrganizationScopedViewSet):
     queryset = IssuanceBatch.objects.all()
     required_permission = "certificates.read"
     http_method_names = ["get", "head", "options"]
+
+    @action(detail=True, methods=["get"])
+    def zip(self, request, pk=None):
+        batch = self.get_object()
+        if not batch.zip_file_id:
+            return Response({"detail": "فایل ZIP هنوز آماده نیست."}, status=404)
+        from attachments.infrastructure.storage.factory import get_storage_provider
+        from django.http import FileResponse
+
+        stored = batch.zip_file
+        result = get_storage_provider().get_download(
+            storage_key=stored.storage_key,
+            mime_type="application/zip",
+            file_name=stored.original_name,
+            file_size=stored.size,
+        )
+        return FileResponse(
+            result.stream,
+            as_attachment=True,
+            filename=stored.original_name,
+            content_type="application/zip",
+        )
 
 
 class PublicVerifyView(APIView):

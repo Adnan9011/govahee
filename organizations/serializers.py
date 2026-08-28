@@ -110,6 +110,8 @@ class WebhookDeliverySerializer(serializers.ModelSerializer):
 
 
 class BrandingSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Branding
         fields = (
@@ -120,7 +122,20 @@ class BrandingSerializer(serializers.ModelSerializer):
             "verification_footer",
             "custom_domain",
             "logo_file",
+            "logo_url",
         )
+
+    def get_logo_url(self, obj):
+        if not obj.logo_file_id:
+            return None
+        return f"/api/attachments/{obj.logo_file_id}/file/"
+
+    def validate_logo_file(self, value):
+        request = self.context.get("request")
+        org = getattr(request, "organization", None) if request else None
+        if value and org and value.organization_id != org.id:
+            raise serializers.ValidationError("فایل متعلق به این سازمان نیست.")
+        return value
 
 
 class CustomFieldSerializer(serializers.ModelSerializer):

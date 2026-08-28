@@ -10,6 +10,7 @@ import {
   updateBranding,
   updateCurrentOrg,
   updateEmailTemplate,
+  uploadAttachment,
 } from "@/api/services";
 import type { Organization } from "@/api/types";
 import { useLocale } from "@/i18n/LocaleContext";
@@ -25,6 +26,8 @@ export default function SettingsPage() {
     font_family: "Vazirmatn",
     email_from_name: "",
     verification_footer: "",
+    logo_file: null as number | null,
+    logo_url: null as string | null,
   });
   const [fields, setFields] = useState<Array<{ id: number; key: string; label: string; is_public: boolean }>>([]);
   const [fieldKey, setFieldKey] = useState("");
@@ -59,6 +62,30 @@ export default function SettingsPage() {
       )}
       {tab === 1 && (
         <Stack spacing={2}>
+          {branding.logo_url ? (
+            <Box component="img" src={branding.logo_url} alt="" sx={{ maxWidth: 160, maxHeight: 80 }} />
+          ) : null}
+          <Button component="label">
+            {t.uploadLogo}
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const form = new FormData();
+                  form.append("file", file);
+                  const uploaded = await uploadAttachment(form);
+                  const next = await updateBranding({ logo_file: uploaded.id });
+                  setBranding((prev) => ({ ...prev, ...next, logo_url: uploaded.url }));
+                } catch (err) {
+                  setError(getApiErrorMessage(err));
+                }
+              }}
+            />
+          </Button>
           <Input label="Primary" value={branding.primary_color} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} />
           <Input label="Secondary" value={branding.secondary_color} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} />
           <Input label={t.settingsEmail} value={branding.email_from_name} onChange={(e) => setBranding({ ...branding, email_from_name: e.target.value })} />

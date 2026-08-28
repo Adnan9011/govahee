@@ -105,6 +105,7 @@ export interface TemplateRow {
   format: string;
   locale: string;
   is_system: boolean;
+  is_active?: boolean;
   current_version: {
     id: number;
     version: number;
@@ -136,6 +137,25 @@ export interface BatchRow {
   success_count: number;
   error_count: number;
   created_at: string;
+  zip_ready?: boolean;
+  error_report?: { row: number; errors: string[] }[];
+  send_email?: boolean;
+}
+
+export interface BulkValidateResult {
+  batch: BatchRow;
+  errors: { row: number; errors: string[] }[];
+  preview: { row_number: number; data: Record<string, string>; errors: string[]; status: string }[];
+  valid_count: number;
+  invalid_count: number;
+}
+
+export interface UploadedFile {
+  id: number;
+  original_name: string;
+  size: number;
+  mime_type: string;
+  url: string;
 }
 
 export interface Paginated<T> {
@@ -174,4 +194,5 @@ export interface Organization {
   verification_status: string;
   verification_indexable: boolean;
   locale: string;
+  onboarding_completed_at?: string | null;
 }

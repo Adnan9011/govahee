@@ -1,6 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
 
+from certificates.bulk import apply_mapping, validate_mapped_row
 from certificates.models import (
     Certificate,
     CertificateEvent,
@@ -20,9 +21,18 @@ def process_issuance_batch(batch_id: int) -> None:
     errors = 0
     items = list(batch.items.all())
     for index, item in enumerate(items, start=1):
-        mapped = {}
-        for col, field in mapping.items():
-            mapped[field] = (item.payload or {}).get(col, "")
+        mapped = apply_mapping(item.payload or {}, mapping)
+        row_errors = validate_mapped_row(mapped, row_number=item.row_number)
+        if row_errors:
+            item.status = IssuanceItem.Status.INVALID
+            item.errors = row_errors
+            item.save(update_fields=["status", "errors"])
+            errors += 1
+            batch.processed_rows = index
+            batch.success_count = success
+            batch.error_count = errors
+            batch.save(update_fields=["processed_rows", "success_count", "error_count"])
+            continue
         try:
             cert = issue_certificate(
                 organization=batch.organization,
@@ -95,6 +105,39 @@ def process_issuance_batch(batch_id: int) -> None:
         for i in batch.items.exclude(status=IssuanceItem.Status.ISSUED)
     ]
     batch.save()
+    if success:
+        build_batch_zip.delay(batch.pk)
+
+
+@shared_task
+def build_batch_zip(batch_id: int) -> None:
+    import zipfile
+    from io import BytesIO
+
+    from attachments.services import save_bytes
+    from certificates.pdf import render_certificate_pdf
+
+    batch = IssuanceBatch.objects.select_related("organization").get(pk=batch_id)
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        certs = Certificate.objects.filter(batch=batch).select_related(
+            "recipient", "template", "template_version", "organization"
+        )
+        for cert in certs:
+            payload = render_certificate_pdf(cert)
+            head = payload.lstrip()[:20].lower()
+            ext = "html" if head.startswith(b"<!doctype") or head.startswith(b"<html") else "pdf"
+            archive.writestr(f"{cert.certificate_number}.{ext}", payload)
+    data = buf.getvalue()
+    stored = save_bytes(
+        organization=batch.organization,
+        data=data,
+        original_name=f"batch-{batch.pk}.zip",
+        mime_type="application/zip",
+        folder="zips",
+    )
+    batch.zip_file = stored
+    batch.save(update_fields=["zip_file"])
 
 
 @shared_task

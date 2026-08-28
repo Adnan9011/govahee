@@ -16,6 +16,17 @@ def pytest_configure(config):
     os.environ.setdefault("PDF_PROVIDER", "html")
     os.environ.setdefault("CELERY_TASK_ALWAYS_EAGER", "True")
     os.environ.setdefault("LOG_LEVEL", "WARNING")
+    os.environ.setdefault("DRF_AUTH_THROTTLE_RATE", "1000/min")
+    os.environ.setdefault("DRF_BULK_THROTTLE_RATE", "1000/min")
+    os.environ.setdefault("DRF_ANON_THROTTLE_RATE", "1000/min")
+
+
+@pytest.fixture(autouse=True)
+def _disable_throttles(monkeypatch):
+    monkeypatch.setattr(
+        "rest_framework.throttling.SimpleRateThrottle.allow_request",
+        lambda self, request, view: True,
+    )
 
 
 @pytest.fixture
