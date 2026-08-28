@@ -215,6 +215,7 @@ Interactive docs: [http://localhost:8000/api/docs/](http://localhost:8000/api/do
 
 - `README_REQUIRE.md` — product requirements and per-item status
 - `README_PLAN.md` — shipped phases, production gaps, next priorities
+- `README_SUGGEST_NAMES.md` — brand and domain name suggestions
 - `docs/ARCHITECTURE.md` — tenancy, RBAC, reuse vs new domain
 - `docs/PHASE_1.md` — foundation (org, auth, plans, admin)
 - `docs/PHASE_2.md` — certificates, PDF, bulk
