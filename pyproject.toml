@@ -1,0 +1,137 @@
+[tool.poetry]
+name = "certificate-saas"
+version = "0.1.0"
+description = "Multi-tenant SaaS for issuing, managing and verifying certificates"
+authors = ["Govahi Team"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+django = "5.2.10"
+djangorestframework = "3.15.2"
+djangorestframework-simplejwt = "5.5.1"
+drf-spectacular = "0.27.2"
+django-environ = "0.12.0"
+django-cors-headers = "4.9.0"
+django-filter = "25.2"
+django-celery-beat = "2.8.1"
+celery = "5.6.2"
+redis = "7.1.0"
+psycopg = { version = "3.3.2", extras = ["binary"] }
+gunicorn = "24.1.1"
+pydantic = "^2.11.0"
+boto3 = "^1.38.0"
+pillow = "^11.1.0"
+qrcode = { version = "^8.0", extras = ["pil"] }
+openpyxl = "^3.1.5"
+
+[tool.poetry.extras]
+pdf = ["weasyprint"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-django = "^4.11.1"
+pytest-cov = "^6.1.1"
+coverage = "^7.8.2"
+ruff = "^0.11.12"
+black = "^25.1.0"
+isort = "^6.0.1"
+pre-commit = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = [
+    "accounts/tests",
+    "organizations/tests",
+    "certificates/tests",
+    "billing/tests",
+    "attachments/tests",
+    "audit/tests",
+]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "-ra",
+    "--cov=accounts",
+    "--cov=organizations",
+    "--cov=certificates",
+    "--cov=billing",
+    "--cov=attachments",
+    "--cov=audit",
+    "--cov=platform_core",
+    "--cov=emails",
+    "--cov=pdfs",
+    "--cov=config",
+    "--cov-report=term-missing:skip-covered",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "config",
+    "accounts",
+    "organizations",
+    "certificates",
+    "billing",
+    "attachments",
+    "audit",
+    "platform_core",
+    "emails",
+    "pdfs",
+]
+omit = ["*/migrations/*", "*/tests/*", "manage.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+show_missing = true
+skip_covered = true
+fail_under = 40
+precision = 1
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = [".venv", "frontend"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "E402"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501"]
+"**/tests/**" = ["S101"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+extend-exclude = "/(frontend|\\.venv)/"
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = [
+    "config",
+    "accounts",
+    "organizations",
+    "certificates",
+    "billing",
+    "attachments",
+    "audit",
+    "platform_core",
+    "emails",
+    "pdfs",
+]
+skip = [".venv", "frontend", "migrations"]
