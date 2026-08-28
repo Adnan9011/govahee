@@ -158,6 +158,19 @@ def issue_certificate(
         request=request,
         metadata={"number": cert.certificate_number},
     )
+    from organizations.webhooks import dispatch_certificate_event
+
+    dispatch_certificate_event(
+        organization,
+        "certificate.issued",
+        {
+            "id": cert.pk,
+            "certificate_number": cert.certificate_number,
+            "recipient_name": recipient.full_name,
+            "course_name": cert.course_name,
+            "status": cert.status,
+        },
+    )
     return cert
 
 
@@ -185,5 +198,16 @@ def revoke_certificate(*, certificate: Certificate, actor, reason: str = "", req
         actor=actor,
         request=request,
         metadata={"reason": reason},
+    )
+    from organizations.webhooks import dispatch_certificate_event
+
+    dispatch_certificate_event(
+        certificate.organization,
+        "certificate.revoked",
+        {
+            "id": certificate.pk,
+            "certificate_number": certificate.certificate_number,
+            "reason": reason,
+        },
     )
     return certificate

@@ -15,5 +15,5 @@ Env: copy `.env.example`.
 
 Known issues:
 
-- Team invite UI is not finished (membership API exists).
-- Payment start/callback is not wired to a checkout page yet (gateway clients are copied).
+- Custom domain routing is not implemented yet (field exists on Branding).
+- Payment start/callback is wired; enable gateways via env or PlatformSettings.

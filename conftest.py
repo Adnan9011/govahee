@@ -14,6 +14,8 @@ def pytest_configure(config):
     os.environ.setdefault("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
     os.environ.setdefault("EMAIL_BACKEND", "django.core.mail.backends.locmem.EmailBackend")
     os.environ.setdefault("PDF_PROVIDER", "html")
+    os.environ.setdefault("CELERY_TASK_ALWAYS_EAGER", "True")
+    os.environ.setdefault("LOG_LEVEL", "WARNING")
 
 
 @pytest.fixture

@@ -24,6 +24,7 @@ PERMISSIONS = {
     "billing.read",
     "billing.write",
     "api.manage",
+    "webhooks.read",
     "webhooks.manage",
 }
 

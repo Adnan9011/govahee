@@ -11,7 +11,7 @@ from accounts.auth_cookies import (
     clear_auth_cookies,
     set_auth_cookies,
 )
-from accounts.serializers import LoginSerializer, MeSerializer, RegisterSerializer
+from accounts.serializers import LoginSerializer, MeSerializer, RegisterSerializer, SetPasswordSerializer
 from organizations.serializers import OrganizationSerializer
 
 
@@ -82,6 +82,20 @@ class SessionView(APIView):
             "memberships": memberships,
         }
         return Response(data)
+
+
+class SetPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = "password_reset"
+
+    def post(self, request):
+        ser = SetPasswordSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        user = ser.save()
+        tokens = issue_tokens_for_user(user)
+        response = Response(auth_response_payload(tokens))
+        set_auth_cookies(response, access=tokens["access"], refresh=tokens["refresh"])
+        return response
 
 
 class CookieTokenRefreshView(TokenRefreshView):

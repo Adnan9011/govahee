@@ -79,9 +79,14 @@ class PaymentTransaction(OrganizationOwnedModel):
     amount = models.PositiveIntegerField()
     factor_id = models.CharField(max_length=64, blank=True)
     gateway_reference = models.CharField(max_length=80, blank=True)
+    gateway_transaction_id = models.CharField(max_length=80, blank=True)
     request_payload = models.JSONField(default=dict, blank=True)
     request_response = models.JSONField(default=dict, blank=True)
+    verify_response = models.JSONField(default=dict, blank=True)
+    card_number = models.CharField(max_length=32, blank=True)
     error_message = models.CharField(max_length=500, blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    applied_at = models.DateTimeField(null=True, blank=True)
 
 
 class UsageCounter(OrganizationOwnedModel):

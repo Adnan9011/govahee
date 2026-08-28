@@ -42,6 +42,8 @@ poetry run pytest --no-cov
 
 - `docs/ARCHITECTURE.md` — reuse vs refactor, tenancy, RBAC
 - `docs/PHASE_1.md` — foundation notes
+- `docs/PHASE_2.md` — certificates, PDF, bulk
+- `docs/PHASE_5.md` — billing, API keys, webhooks, team, analytics
 
 ## Core flow
 

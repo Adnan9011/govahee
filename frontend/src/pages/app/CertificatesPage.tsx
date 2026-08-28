@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Box, Typography } from "@mui/material";
 import { Button, Input } from "@/components/ui";
 import { EmptyState } from "@/components/ui/FeedbackStates";
-import { fetchCertificates } from "@/api/services";
+import { fetchCertificates, exportCertificatesCsv } from "@/api/services";
 import type { CertificateRow } from "@/api/types";
 import { useLocale } from "@/i18n/LocaleContext";
 import { fa } from "@/i18n/fa";
@@ -27,6 +27,7 @@ export default function CertificatesPage() {
         <Button component={Link} to="/app/issue" variant="contained">
           {t.issue}
         </Button>
+        <Button onClick={() => void exportCertificatesCsv()}>{t.exportCsv}</Button>
       </Box>
       <Input placeholder={t.search} value={search} onChange={(e) => setSearch(e.target.value)} sx={{ mb: 2, maxWidth: 360 }} />
       {rows.length === 0 ? (

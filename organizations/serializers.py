@@ -1,12 +1,15 @@
 from rest_framework import serializers
 
 from organizations.models import (
+    ApiKey,
     Branding,
     CustomField,
     EmailTemplate,
     Organization,
     OrganizationMembership,
     PublicIssuerProfile,
+    Webhook,
+    WebhookDelivery,
 )
 
 
@@ -55,6 +58,55 @@ class MembershipSerializer(serializers.ModelSerializer):
         model = OrganizationMembership
         fields = ("id", "user", "email", "full_name", "role", "is_active", "created_at")
         read_only_fields = ("user", "created_at")
+
+
+class InviteMemberSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    full_name = serializers.CharField(max_length=180, required=False, allow_blank=True)
+    role = serializers.ChoiceField(
+        choices=["admin", "issuer", "designer", "viewer"], default="issuer"
+    )
+
+
+class ApiKeySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApiKey
+        fields = (
+            "id",
+            "name",
+            "prefix",
+            "permissions",
+            "last_used_at",
+            "revoked_at",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class ApiKeyCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=80)
+    permissions = serializers.ListField(child=serializers.CharField(), required=False)
+
+
+class WebhookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Webhook
+        fields = ("id", "url", "events", "is_active", "created_at")
+        read_only_fields = ("id", "created_at")
+
+
+class WebhookDeliverySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebhookDelivery
+        fields = (
+            "id",
+            "event",
+            "status",
+            "response_code",
+            "attempt_count",
+            "next_retry_at",
+            "created_at",
+        )
 
 
 class BrandingSerializer(serializers.ModelSerializer):

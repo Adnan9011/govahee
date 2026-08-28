@@ -105,17 +105,19 @@ Celery queue `celery`:
 - bulk certificate generation
 - PDF + ZIP
 - email send / retry
-- webhook delivery
+- webhook delivery (HMAC + exponential retry)
 - expire certificates
 - usage aggregation
 
 Single issuance may run synchronously when the plan allows.
 
+API keys authenticate `/api/v1/` via `X-Api-Key` / `Bearer gvh_...` (SHA-256 stored hash).
+
 ## 8. Billing
 
 Plans are DB rows (`Plan.capabilities` JSON). Limits are never hardcoded in views.
 Payment service copies Nobita's start → callback → verify → apply flow, keyed by
-`Organization` instead of manager `User`.
+`Organization` instead of manager `User`. Gateways: Zibal and BitPay.
 
 ## 9. Legal
 

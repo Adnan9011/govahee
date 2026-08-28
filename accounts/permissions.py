@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from accounts.auth import is_platform_admin
+from organizations.api_scopes import api_scopes_allow
 from organizations.models import OrganizationMembership
 from organizations.rbac import role_has_permission
 
@@ -23,6 +24,17 @@ class HasOrganization(BasePermission):
         user = request.user
         if not user or not user.is_authenticated:
             return False
+        if getattr(user, "is_api_key", False):
+            request.organization = user.organization
+            request.membership = None
+            request.org_role = "api"
+            request.api_permissions = getattr(user, "permissions", [])
+            if request.organization.is_suspended and not getattr(
+                view, "allow_suspended_org", False
+            ):
+                self.message = "سازمان شما تعلیق شده است."
+                return False
+            return True
         org_id = request.headers.get("X-Organization-Id")
         if is_platform_admin(user):
             if org_id:
@@ -68,6 +80,11 @@ class HasOrgPermission(HasOrganization):
             return True
         required = getattr(view, "required_permission", None)
         if required is None:
+            return True
+        if getattr(request.user, "is_api_key", False):
+            if not api_scopes_allow(getattr(request, "api_permissions", []), required):
+                self.message = "کلید API مجوز این عملیات را ندارد."
+                return False
             return True
         if not role_has_permission(request.org_role, required):
             self.message = "شما مجوز این عملیات را ندارید."

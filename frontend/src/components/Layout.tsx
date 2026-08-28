@@ -22,6 +22,9 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import PeopleIcon from "@mui/icons-material/People";
+import GroupIcon from "@mui/icons-material/Group";
+import InsightsIcon from "@mui/icons-material/Insights";
+import HubIcon from "@mui/icons-material/Hub";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import SettingsIcon from "@mui/icons-material/Settings";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -50,6 +53,9 @@ export function AppLayout({ children }: { children?: ReactNode }) {
       { to: "/app/bulk", label: t.bulk, icon: <UploadFileIcon /> },
       { to: "/app/templates", label: t.templates, icon: <DesignServicesIcon /> },
       { to: "/app/recipients", label: t.recipients, icon: <PeopleIcon /> },
+      { to: "/app/team", label: t.team, icon: <GroupIcon /> },
+      { to: "/app/analytics", label: t.analytics, icon: <InsightsIcon /> },
+      { to: "/app/integrations", label: t.integrations, icon: <HubIcon /> },
       { to: "/app/verify-search", label: t.verification, icon: <VerifiedIcon /> },
       { to: "/app/billing", label: t.billing, icon: <CreditCardIcon /> },
       { to: "/app/settings", label: t.settings, icon: <SettingsIcon /> },

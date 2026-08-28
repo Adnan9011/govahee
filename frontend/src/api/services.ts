@@ -111,23 +111,144 @@ export async function completeOnboarding() {
   await api.post("/org/complete-onboarding/");
 }
 
-export async function fetchSubscription() {
-  const { data } = await api.get("/subscription/");
-  return data as {
-    subscription: { status: string; plan: string; current_period_end: string } | null;
-    entitlements: Record<string, unknown>;
-  };
-}
-
 export async function fetchPlans() {
   const { data } = await api.get("/plans/");
   return data as Array<{
+    id: number;
     code: string;
     name: string;
     name_fa: string;
     price_toman: number;
     capabilities: Record<string, unknown>;
   }>;
+}
+
+export async function fetchSubscription() {
+  const { data } = await api.get("/subscription/");
+  return data as {
+    subscription: { status: string; plan: string; current_period_end: string } | null;
+    entitlements: Record<string, unknown>;
+    gateways?: { bitpay: boolean; zibal: boolean };
+  };
+}
+
+export async function startPayment(gateway: string, plan_id: number) {
+  const { data } = await api.post("/payments/start/", { gateway, plan_id });
+  return data as { redirect_url: string; id: number };
+}
+
+export async function fetchTeam() {
+  const { data } = await api.get<Paginated<{ id: number; email: string; full_name: string; role: string; is_active: boolean }>>("/team/");
+  return data;
+}
+
+export async function inviteMember(payload: { email: string; role: string; full_name?: string }) {
+  const { data } = await api.post("/team/", payload);
+  return data;
+}
+
+export async function removeMember(id: number) {
+  await api.delete(`/team/${id}/`);
+}
+
+export async function fetchAnalytics() {
+  const { data } = await api.get("/analytics/");
+  return data as {
+    series: { date: string; issued: number; verified: number }[];
+    top_courses: { name: string; count: number }[];
+    top_templates: { name: string; count: number }[];
+    top_countries: { country: string; count: number }[];
+    unique_visitors: number;
+    verifications: number;
+  };
+}
+
+export async function fetchApiKeys() {
+  const { data } = await api.get<Paginated<{
+    id: number;
+    name: string;
+    prefix: string;
+    permissions: string[];
+    last_used_at: string | null;
+    revoked_at: string | null;
+    created_at: string;
+  }>>("/api-keys/");
+  return data;
+}
+
+export async function createApiKey(payload: { name: string; permissions: string[] }) {
+  const { data } = await api.post("/api-keys/", payload);
+  return data as { id: number; key: string; name: string; prefix: string };
+}
+
+export async function revokeApiKey(id: number) {
+  await api.delete(`/api-keys/${id}/`);
+}
+
+export async function fetchWebhooks() {
+  const { data } = await api.get<Paginated<{ id: number; url: string; events: string[]; is_active: boolean }>>("/webhooks/");
+  return data;
+}
+
+export async function createWebhook(payload: { url: string; events: string[] }) {
+  const { data } = await api.post("/webhooks/", payload);
+  return data;
+}
+
+export async function fetchCustomFields() {
+  const { data } = await api.get<Paginated<{
+    id: number;
+    key: string;
+    label: string;
+    field_type: string;
+    is_public: boolean;
+  }>>("/custom-fields/");
+  return data;
+}
+
+export async function createCustomField(payload: Record<string, unknown>) {
+  const { data } = await api.post("/custom-fields/", payload);
+  return data;
+}
+
+export async function fetchEmailTemplates() {
+  const { data } = await api.get<Paginated<{ id: number; kind: string; subject: string; body: string; is_active: boolean }>>("/email-templates/");
+  return data;
+}
+
+export async function updateEmailTemplate(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.patch(`/email-templates/${id}/`, payload);
+  return data;
+}
+
+export async function fetchBranding() {
+  const { data } = await api.get("/branding/");
+  return data as {
+    primary_color: string;
+    secondary_color: string;
+    font_family: string;
+    email_from_name: string;
+    verification_footer: string;
+  };
+}
+
+export async function updateBranding(payload: Record<string, unknown>) {
+  const { data } = await api.patch("/branding/", payload);
+  return data;
+}
+
+export async function exportCertificatesCsv() {
+  const { data } = await api.get("/certificates/export/", { responseType: "blob" });
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "certificates.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function setPassword(uid: string, token: string, password: string) {
+  await api.post("/auth/set-password/", { uid, token, password });
 }
 
 export async function verifyToken(token: string) {

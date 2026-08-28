@@ -15,7 +15,9 @@ from rest_framework.views import APIView
 from accounts.auth import database_user_or_none
 from accounts.permissions import HasOrgPermission
 from billing.entitlements import assert_feature, current_usage, get_entitlements
+from certificates.analytics import analytics_payload
 from certificates.bulk import parse_tabular, suggested_mapping
+from certificates.export import certificates_to_csv
 from certificates.models import (
     Certificate,
     CertificateEvent,
@@ -143,6 +145,7 @@ class CertificateViewSet(OrganizationScopedViewSet):
             "bulk_actions": "certificates.revoke",
             "pdf": "certificates.read",
             "preview": "certificates.read",
+            "export": "certificates.export",
         }
         self.required_permission = mapping.get(self.action, "certificates.read")
         return super().get_permissions()
@@ -243,7 +246,29 @@ class CertificateViewSet(OrganizationScopedViewSet):
             for cert in qs:
                 revoke_certificate(certificate=cert, actor=request.user, request=request)
             return Response({"ok": True, "count": qs.count()})
+        if action_name == "resend":
+            from certificates.tasks import send_certificate_email
+
+            count = 0
+            for cert in qs:
+                if cert.recipient.email:
+                    send_certificate_email.delay(cert.pk)
+                    count += 1
+            return Response({"ok": True, "count": count})
+        if action_name == "export":
+            body = certificates_to_csv(qs.select_related("recipient"))
+            response = HttpResponse(body, content_type="text/csv; charset=utf-8")
+            response["Content-Disposition"] = 'attachment; filename="certificates.csv"'
+            return response
         return Response({"detail": "عملیات نامعتبر است."}, status=400)
+
+    @action(detail=False, methods=["get"])
+    def export(self, request):
+        qs = self.filter_queryset(self.get_queryset()).select_related("recipient")[:5000]
+        body = certificates_to_csv(qs)
+        response = HttpResponse("\ufeff" + body, content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="certificates.csv"'
+        return response
 
 
 class DashboardView(APIView):
@@ -279,6 +304,14 @@ class DashboardView(APIView):
             ).data,
         }
         return Response(data)
+
+
+class AnalyticsView(APIView):
+    permission_classes = [HasOrgPermission]
+    required_permission = "analytics.read"
+
+    def get(self, request):
+        return Response(analytics_payload(request.organization))
 
 
 class BulkIssueView(APIView):
@@ -389,6 +422,15 @@ class PublicVerifyView(APIView):
         cert.save(update_fields=["verification_count", "view_count"])
         CertificateEvent.objects.create(certificate=cert, kind=CertificateEvent.Kind.VERIFIED)
         org = cert.organization
+        from organizations.webhooks import dispatch_certificate_event
+        from billing.usage import increment_usage
+
+        increment_usage(org, "verification_views")
+        dispatch_certificate_event(
+            org,
+            "certificate.verified",
+            {"id": cert.pk, "certificate_number": cert.certificate_number},
+        )
         public_fields = {
             "recipient_name": cert.recipient.full_name,
             "title": cert.title,

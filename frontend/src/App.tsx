@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import LandingPage from "@/pages/landing/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import SetPasswordPage from "@/pages/SetPasswordPage";
 import LegalPage from "@/pages/LegalPage";
 import VerifyPage from "@/pages/public/VerifyPage";
 import IssuerPage from "@/pages/public/IssuerPage";
@@ -20,6 +21,9 @@ const BulkPage = lazy(() => import("@/pages/app/BulkPage"));
 const TemplatesPage = lazy(() => import("@/pages/app/TemplatesPage"));
 const TemplateEditorPage = lazy(() => import("@/pages/app/TemplateEditorPage"));
 const RecipientsPage = lazy(() => import("@/pages/app/RecipientsPage"));
+const TeamPage = lazy(() => import("@/pages/app/TeamPage"));
+const AnalyticsPage = lazy(() => import("@/pages/app/AnalyticsPage"));
+const IntegrationsPage = lazy(() => import("@/pages/app/IntegrationsPage"));
 const SettingsPage = lazy(() => import("@/pages/app/SettingsPage"));
 const BillingPage = lazy(() => import("@/pages/app/BillingPage"));
 const VerifySearchPage = lazy(() => import("@/pages/app/VerifySearchPage"));
@@ -42,6 +46,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/set-password/:uid/:token" element={<SetPasswordPage />} />
           <Route path="/legal/:kind" element={<LegalPage />} />
           <Route path="/verify/:token" element={<VerifyPage />} />
           <Route path="/issuer/:slug" element={<IssuerPage />} />
@@ -61,6 +66,9 @@ export default function App() {
             <Route path="templates" element={<TemplatesPage />} />
             <Route path="templates/:id" element={<TemplateEditorPage />} />
             <Route path="recipients" element={<RecipientsPage />} />
+            <Route path="team" element={<TeamPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="billing" element={<BillingPage />} />
             <Route path="verify-search" element={<VerifySearchPage />} />

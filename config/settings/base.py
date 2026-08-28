@@ -176,7 +176,10 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("accounts.auth.CookieJWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "organizations.authentication.ApiKeyAuthentication",
+        "accounts.auth.CookieJWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.AnonRateThrottle",
@@ -232,6 +235,7 @@ from corsheaders.defaults import default_headers as _cors_default_headers
 CORS_ALLOW_HEADERS = list(_cors_default_headers) + [
     "x-request-id",
     "x-organization-id",
+    "x-api-key",
     "idempotency-key",
 ]
 
@@ -245,6 +249,14 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BEAT_SCHEDULE = {
+    "retry-webhooks": {
+        "task": "organizations.tasks.retry_pending_webhooks",
+        "schedule": 60.0,
+    },
+}
 
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"

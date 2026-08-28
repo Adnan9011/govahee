@@ -125,3 +125,13 @@ def send_certificate_email(certificate_id: int) -> None:
     )
     get_email_provider().send(to=email, subject=subject, body=body)
     CertificateEvent.objects.create(certificate=cert, kind=CertificateEvent.Kind.SENT)
+    from billing.usage import increment_usage
+
+    increment_usage(cert.organization, "emails_sent")
+    from organizations.webhooks import dispatch_certificate_event
+
+    dispatch_certificate_event(
+        cert.organization,
+        "certificate.sent",
+        {"id": cert.pk, "certificate_number": cert.certificate_number},
+    )
