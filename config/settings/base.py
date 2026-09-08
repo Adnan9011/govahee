@@ -1,6 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse
 
 import environ
 from django.core.management.utils import get_random_secret_key
@@ -35,9 +35,25 @@ env = environ.Env(
 
 environ.Env.read_env(BASE_DIR / ".env")
 
+def _hostnames(values: list[str]) -> list[str]:
+    hosts: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        value = (raw or "").strip()
+        if not value:
+            continue
+        if "://" in value:
+            hostname = urlparse(value).hostname
+            value = hostname or value
+        if value not in seen:
+            seen.add(value)
+            hosts.append(value)
+    return hosts
+
+
 SECRET_KEY = env("SECRET_KEY", default="") or get_random_secret_key()
 DEBUG = env("DEBUG")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = _hostnames(env.list("ALLOWED_HOSTS"))
 SITE_URL = env("SITE_URL", default="http://localhost:5173")
 FRONTEND_SITE_URL = env("FRONTEND_SITE_URL", default=SITE_URL)
 FRONTEND_INDEX_PATH = env(

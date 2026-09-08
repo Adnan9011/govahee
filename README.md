@@ -12,7 +12,7 @@ This product is **not** a government credential system. Public verification only
 |-------|--------|
 | Backend | Python 3.11, Django 5.2, DRF, SimpleJWT (httpOnly cookies) |
 | Frontend | React 18, TypeScript, Vite 5, MUI 6 (RTL, `fa` + `en`) |
-| Data | PostgreSQL 16 (SQLite is the local default in `.env.example`) |
+| Data | PostgreSQL 16 (SQLite is the local default in `.env`) |
 | Jobs | Redis 7, Celery 5 |
 | PDF | `PDF_PROVIDER=html` (dev/tests) or `weasyprint` (production) |
 | Payments | Zibal, BitPay |
@@ -54,7 +54,6 @@ Business logic does not import a concrete payment, storage, email, or PDF vendor
 Requires Python 3.10–3.12, [Poetry](https://python-poetry.org/), Node 20+, and (for jobs) Redis.
 
 ```bash
-cp .env.example .env
 poetry install --with dev
 poetry run python manage.py migrate
 poetry run python manage.py seed_demo
@@ -94,7 +93,6 @@ SPA: `http://localhost:5173` — dashboard at `/app`, verify at `/verify/{token}
 ## Docker
 
 ```bash
-cp .env.example .env
 docker compose -f docker-compose.dev.yml up --build
 ```
 
@@ -123,7 +121,7 @@ poetry run black --check .
 
 ## Configuration
 
-Copy `.env.example`. Important keys:
+Configure `.env` locally (gitignored). Important keys:
 
 | Variable | Purpose |
 |----------|---------|

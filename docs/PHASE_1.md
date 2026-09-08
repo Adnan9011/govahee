@@ -11,7 +11,7 @@ Shipped:
 
 Database: see initial migrations after `manage.py makemigrations`.
 
-Env: copy `.env.example`.
+Env: use local `.env` (gitignored).
 
 Known issues:
 

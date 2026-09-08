@@ -163,7 +163,7 @@
 
 | ID | نیاز | وضعیت |
 |----|------|--------|
-| PDF-1 | خروجی مطابق canvas؛ فونت embed؛ RTL | ناقص در dev — `PDF_PROVIDER=html` پیش‌فرض `.env.example`؛ برای چاپ واقعی `weasyprint` |
+| PDF-1 | خروجی مطابق canvas؛ فونت embed؛ RTL | ناقص در dev — `PDF_PROVIDER=html` پیش‌فرض `.env`؛ برای چاپ واقعی `weasyprint` |
 | PDF-2 | abstraction `PdfProvider` | انجام |
 
 ### ۵.۸ ایمیل و اشتراک

@@ -9,6 +9,7 @@ media/
 logs/
 *.log
 .env
+.env.*
 .env.local
 node_modules/
 frontend/dist/

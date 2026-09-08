@@ -55,7 +55,7 @@ Phase 9 White label ██████░░░░░░ لوگو/رنگ انج�
 بدون این‌ها صدور انبوه و ایمیل در سرور واقعی reliably کار نمی‌کند.
 
 1. **Celery worker + Redis در پروداکشن** — ZIP، ایمیل گواهی، تحویل وب‌هوک. `CELERY_TASK_ALWAYS_EAGER` فقط تست است.
-2. **`PDF_PROVIDER=weasyprint`** — فونت فارسی embed و تطبیق با قالب؛ `.env.example` فعلاً `html` است.
+2. **`PDF_PROVIDER=weasyprint`** — فونت فارسی embed و تطبیق با قالب؛ `.env` فعلاً `html` است.
 3. **SMTP واقعی** — به‌جای `console.EmailBackend`.
 4. **Postgres + ذخیرهٔ فایل** — SQLite فقط برای dev محلی؛ MinIO/Parspack برای فایل.
 
