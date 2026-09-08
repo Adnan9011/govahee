@@ -59,7 +59,11 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
     image: govahi-app:latest
+    pull_policy: build
     container_name: govahi_web
     command: >
       gunicorn config.wsgi:application
@@ -102,7 +106,15 @@ services:
     restart: unless-stopped
 
   celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
     image: govahi-app:latest
+    pull_policy: build
     container_name: govahi_celery
     command: celery -A config worker -l info
     env_file:
@@ -131,7 +143,15 @@ services:
     restart: unless-stopped
 
   celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
     image: govahi-app:latest
+    pull_policy: build
     container_name: govahi_celery_beat
     command: >
       celery -A config beat
@@ -168,7 +188,9 @@ services:
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
         VITE_SITE_URL: ${VITE_SITE_URL:-}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
     image: govahi-frontend
+    pull_policy: build
     container_name: govahi_frontend
     depends_on:
       web:

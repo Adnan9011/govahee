@@ -1,9 +1,12 @@
 FROM node:20-alpine AS builder
 
+ARG NPM_REGISTRY=https://registry.npmjs.org
+
 WORKDIR /app
 
 COPY package.json ./
-RUN npm install --no-audit --no-fund
+RUN npm config set registry "${NPM_REGISTRY}" \
+    && npm install --no-audit --no-fund --fetch-retries=10 --fetch-timeout=120000
 
 COPY . .
 

@@ -98,6 +98,15 @@ docker compose -f docker-compose.dev.yml up --build
 
 Services: Postgres, Redis, MinIO, Django (`:8000`), Celery worker, Vite (`:5173`). The web container runs migrations when `RUN_MIGRATE=1`.
 
+Production (`docker-compose.yml`) builds `govahi-app` locally (it is not on Docker Hub). If `pip` times out on `pypi.org` (common on some VPS / IPv6 setups), build with a mirror:
+
+```bash
+PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+PIP_TRUSTED_HOST="pypi.tuna.tsinghua.edu.cn files.pythonhosted.org" \
+NPM_REGISTRY=https://registry.npmmirror.com \
+docker compose up -d --build
+```
+
 ## Tests
 
 Backend (coverage is on by default; `fail_under` is 40):
