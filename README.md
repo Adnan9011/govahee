@@ -98,7 +98,7 @@ docker compose -f docker-compose.dev.yml up --build
 
 Services: Postgres, Redis, MinIO, Django (`:8000`), Celery worker, Vite (`:5173`). The web container runs migrations when `RUN_MIGRATE=1`.
 
-Production (`docker-compose.yml`) builds `govahi-app` locally (it is not on Docker Hub). Python installs from the Tsinghua PyPI mirror. The frontend image tries npm registries in order (npmjs, Huawei, npmmirror) and prefers IPv4; set `NPM_REGISTRY` to force a single registry.
+Production (`docker-compose.yml`) builds `govahi-app` locally (it is not on Docker Hub). Python installs from the Tsinghua PyPI mirror. The frontend build uses host DNS, probes each npm registry (~12s), and aborts a hung `npm install` after 3 minutes so the next mirror is tried. Set `NPM_REGISTRY` to force a registry.
 
 ## Tests
 
