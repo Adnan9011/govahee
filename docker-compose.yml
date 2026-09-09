@@ -60,8 +60,8 @@ services:
       dockerfile: Dockerfile
       target: production
       args:
-        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.tuna.tsinghua.edu.cn files.pythonhosted.org}
     image: govahi-app:latest
     pull_policy: build
     container_name: govahi_web
@@ -111,8 +111,8 @@ services:
       dockerfile: Dockerfile
       target: production
       args:
-        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.tuna.tsinghua.edu.cn files.pythonhosted.org}
     image: govahi-app:latest
     pull_policy: build
     container_name: govahi_celery
@@ -148,8 +148,8 @@ services:
       dockerfile: Dockerfile
       target: production
       args:
-        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.org files.pythonhosted.org}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+        PIP_TRUSTED_HOST: ${PIP_TRUSTED_HOST:-pypi.tuna.tsinghua.edu.cn files.pythonhosted.org}
     image: govahi-app:latest
     pull_policy: build
     container_name: govahi_celery_beat
@@ -188,7 +188,7 @@ services:
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
         VITE_SITE_URL: ${VITE_SITE_URL:-}
-        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
     image: govahi-frontend
     pull_policy: build
     container_name: govahi_frontend

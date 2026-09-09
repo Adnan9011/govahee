@@ -1,7 +1,7 @@
 FROM python:3.11-slim AS base
 
-ARG PIP_INDEX_URL=https://pypi.org/simple
-ARG PIP_TRUSTED_HOST=pypi.org files.pythonhosted.org
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ARG PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn files.pythonhosted.org pypi.org
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -9,6 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST} \
     PIP_DEFAULT_TIMEOUT=120 \
     PIP_RETRIES=15 \
+    PIP_PROGRESS_BAR=on \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Docker often hangs on IPv6 to pypi.org; prefer IPv4.
@@ -16,8 +17,8 @@ RUN printf "precedence ::ffff:0:0/96  100\n" >> /etc/gai.conf
 
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+RUN pip install --upgrade pip -v \
+    && pip install -r requirements.txt -v --progress-bar on
 
 FROM base AS production
 RUN apt-get update && apt-get install -y --no-install-recommends \
