@@ -3,7 +3,7 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
-from .base import BASE_DIR, LOG_DIR, env
+from .base import ALLOWED_HOSTS, BASE_DIR, LOG_DIR, env
 from .logging_config import build_logging_config
 
 if not env("SECRET_KEY", default=""):
@@ -11,11 +11,18 @@ if not env("SECRET_KEY", default=""):
 
 DEBUG = env.bool("DEBUG", default=False)
 
+# Compose healthcheck uses Host: 127.0.0.1 even when ALLOWED_HOSTS is the public domain.
+for _health_host in ("127.0.0.1", "localhost"):
+    if _health_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_health_host)
+
 LOG_LEVEL = env("LOG_LEVEL", default="INFO")
 LOG_JSON = env.bool("LOG_JSON", default=True)
 
 # Nginx Proxy Manager terminates TLS and must send X-Forwarded-Proto: https.
+# Docker healthchecks hit http://127.0.0.1 — do not redirect those to https.
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+SECURE_REDIRECT_EXEMPT = [r"^api/health/?$"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31_536_000)

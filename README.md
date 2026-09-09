@@ -98,7 +98,7 @@ docker compose -f docker-compose.dev.yml up --build
 
 Services: Postgres, Redis, MinIO, Django (`:8000`), Celery worker, Vite (`:5173`). The web container runs migrations when `RUN_MIGRATE=1`.
 
-Production (`docker-compose.yml`) builds `govahi-app` locally (it is not on Docker Hub). Python installs from the Tsinghua PyPI mirror. The frontend build probes Iranian npm mirrors (Kargadan, Liara, Runflare, ParsPack) and skips unreachable registries within ~15s. Set `NPM_REGISTRY` to force a registry.
+Production (`docker-compose.yml`) uses four images by default: Postgres, Redis, `govahi-app` (Django + Celery worker + beat), and `govahi-frontend`. MinIO is opt-in (`docker compose --profile minio up -d`) when `ATTACHMENT_STORAGE_PROVIDER=minio`. Python installs from the Tsinghua PyPI mirror. The frontend build probes Iranian npm mirrors; set `NPM_REGISTRY` to force a registry.
 
 ## Tests
 
