@@ -1,12 +1,30 @@
 FROM node:20-alpine AS builder
 
-ARG NPM_REGISTRY=https://registry.npmmirror.com
+# Optional first registry. If unset, npmjs → Huawei → npmmirror are tried in order.
+ARG NPM_REGISTRY=
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 
 WORKDIR /app
 
 COPY package.json ./
-RUN npm config set registry "${NPM_REGISTRY}" \
-    && npm install --no-audit --no-fund --fetch-retries=10 --fetch-timeout=120000 --loglevel http --progress=true
+RUN npm config set fetch-retries 4 \
+    && npm config set fetch-retry-mintimeout 10000 \
+    && npm config set fetch-retry-maxtimeout 60000 \
+    && npm config set fetch-timeout 60000 \
+    && fail=1 \
+    && for reg in ${NPM_REGISTRY} \
+         https://registry.npmjs.org \
+         https://repo.huaweicloud.com/repository/npm/ \
+         https://registry.npmmirror.com; do \
+         [ -z "$reg" ] && continue; \
+         echo "=== npm registry: $reg ==="; \
+         npm config set registry "$reg"; \
+         if npm install --no-audit --no-fund --progress=true; then \
+           fail=0; \
+           break; \
+         fi; \
+       done \
+    && [ "$fail" -eq 0 ]
 
 COPY . .
 
